@@ -1,114 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>$VYRAL – Holder List</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      background: #0d0d0d;
-      color: #fff;
-      font-family: 'Orbitron', sans-serif;
-      text-align: center;
-      padding: 40px 20px;
+<script>
+  const TOKEN_CA = "GxuHWyaza5V5kjV6WTFbQ7bFMXZwGUAw91uSrPJWpump";
+  const URL = `https://public-api.birdeye.so/public/token/${TOKEN_CA}/holders?limit=100`;
+
+  async function fetchHolders() {
+    try {
+      const res = await fetch(URL);
+      const data = await res.json();
+      const holders = data.data || [];
+
+      document.getElementById("holderCount").innerText = `👥 Total Holders: ${holders.length}`;
+      document.getElementById("walletList").innerHTML = holders.map(h =>
+        `<div class="wallet">${h.holder.slice(0, 4)}...${h.holder.slice(-4)}</div>`
+      ).join("");
+
+    } catch (err) {
+      console.error("Error fetching holders:", err);
+      document.getElementById("holderCount").innerText = "Error loading holder count.";
     }
+  }
 
-    nav .btn {
-      background: #222;
-      border: 2px solid #ff2ec7;
-      color: #ff2ec7;
-      margin: 4px;
-      text-decoration: none;
-      padding: 10px 18px;
-      border-radius: 10px;
-      font-weight: bold;
-    }
-
-    .holder-count {
-      font-size: 2rem;
-      color: #f72585;
-      background: #191919;
-      padding: 20px;
-      border-radius: 20px;
-      margin-top: 30px;
-      display: inline-block;
-    }
-
-    .wallet-list {
-      margin-top: 40px;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .wallet {
-      background: #111;
-      border: 1px solid #ff2ec7;
-      padding: 12px;
-      margin-bottom: 10px;
-      border-radius: 12px;
-      font-size: 1rem;
-    }
-
-    footer {
-      margin-top: 60px;
-      font-size: 0.9rem;
-      color: #888;
-    }
-  </style>
-</head>
-<body>
-  <nav>
-    <a href="index.html" class="btn">Home</a>
-    <a href="tokenomics.html" class="btn">Tokenomics</a>
-    <a href="roadmap.html" class="btn">Roadmap</a>
-    <a href="whitepaper.html" class="btn">Whitepaper</a>
-    <a href="chart.html" class="btn">Chart</a>
-    <a href="contracts.html" class="btn">Holders</a>
-  </nav>
-
-  <h1>🔐 Live $VYRAL Holders</h1>
-  <p>Top 100 wallets currently holding the token</p>
-
-  <div class="holder-count" id="holderCount">Loading holder count...</div>
-
-  <div class="wallet-list" id="walletList"></div>
-
-  <footer>© 2025 $VYRAL Community</footer>
-
-  <script>
-    const walletList = document.getElementById("walletList");
-    const holderCount = document.getElementById("holderCount");
-
-    const API_KEY = "2e512a747fde44b197517c835c1ee21b";
-    const TOKEN_CA = "GxuHWyaza5V5kjV6WTFbQ7bFMXZwGUAw91uSrPJWpump";
-
-    async function fetchHolders() {
-      try {
-        const res = await fetch(`https://public-api.birdeye.so/defi/v3/token/holder?offset=0&limit=100&address=${TOKEN_CA}`, {
-          headers: { "X-API-KEY": API_KEY }
-        });
-        const data = await res.json();
-
-        const holders = data.data?.items || [];
-        holderCount.innerHTML = `👥 Total Holders: ${holders.length}`;
-
-        walletList.innerHTML = holders.map(h => `
-          <div class="wallet">${abbreviate(h.address)}</div>
-        `).join("");
-
-      } catch (err) {
-        holderCount.innerText = "Failed to load holders.";
-        console.error(err);
-      }
-    }
-
-    function abbreviate(address) {
-      return address.slice(0, 4) + "..." + address.slice(-4);
-    }
-
-    fetchHolders();
-  </script>
-</body>
-</html>
+  fetchHolders();
+</script>
