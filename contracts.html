@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>$VYRAL – Contract + Live Tracker</title>
+  <title>$VYRAL – Verified Holders</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
   <style>
     body {
@@ -13,12 +13,9 @@
       text-align: center;
       padding: 40px 20px;
     }
-
     h1 {
       color: #f72585;
-      margin-bottom: 30px;
     }
-
     nav .btn {
       background: #222;
       border: 2px solid #ff2ec7;
@@ -29,43 +26,33 @@
       border-radius: 10px;
       font-weight: bold;
     }
-
+    .info-box {
+      background-color: #1a1a1a;
+      border: 1px solid #ff2ec7;
+      padding: 20px;
+      margin: 30px auto;
+      max-width: 700px;
+      border-radius: 10px;
+    }
     table {
-      margin: 40px auto;
+      margin: 30px auto;
       border-collapse: collapse;
       width: 90%;
-      max-width: 700px;
+      max-width: 800px;
     }
-
     th, td {
       border: 1px solid #ff2ec7;
       padding: 14px;
     }
-
     th {
-      background-color: #1a1a1a;
+      background-color: #121212;
       color: #f72585;
     }
-
     td {
-      background-color: #121212;
-      word-break: break-word;
+      background-color: #191919;
+      font-size: 0.9rem;
+      word-break: break-all;
     }
-
-    a.ca-link {
-      color: #5ffbf1;
-      text-decoration: underline;
-    }
-
-    iframe {
-      width: 100%;
-      max-width: 1000px;
-      height: 600px;
-      border: none;
-      border-radius: 10px;
-      margin-top: 40px;
-    }
-
     footer {
       margin-top: 60px;
       padding: 20px;
@@ -83,31 +70,53 @@
     <a href="contracts.html" class="btn">Contracts</a>
   </nav>
 
-  <h1>📜 $VYRAL Contract & Live Holder Tracker</h1>
+  <h1>🔐 Verified $VYRAL Holders</h1>
 
-  <table>
-    <tr>
-      <th>Token</th>
-      <th>Contract Address</th>
-      <th>Tools</th>
-    </tr>
-    <tr>
-      <td>$VYRAL</td>
-      <td>GxuHWyaza5V5kjV6WTFbQ7bFMXZwGUAw91uSrPJWpump</td>
-      <td>
-        <a class="ca-link" href="https://solscan.io/token/GxuHWyaza5V5kjV6WTFbQ7bFMXZwGUAw91uSrPJWpump" target="_blank">Solscan</a> |
-        <a class="ca-link" href="https://birdeye.so/token/GxuHWyaza5V5kjV6WTFbQ7bFMXZwGUAw91uSrPJWpump?chain=solana" target="_blank">Birdeye</a>
-      </td>
-    </tr>
+  <div class="info-box">
+    <p>This list shows wallets that:</p>
+    <ul style="text-align: left; display: inline-block;">
+      <li>✅ Were among the <strong>first 100 $VYRAL buyers</strong></li>
+      <li>✅ Are still actively <strong>holding tokens</strong></li>
+    </ul>
+    <p><em>Updated live via Birdeye API</em></p>
+  </div>
+
+  <table id="holderTable">
+    <thead>
+      <tr><th>#</th><th>Wallet Address</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="2">Loading wallets...</td></tr>
+    </tbody>
   </table>
 
-  <h2 style="color: #f72585;">👀 Live Holder Tracker</h2>
-  <p>Real-time snapshot from Birdeye – see active wallet count and trades:</p>
-
-  <iframe src="https://birdeye.so/token/GxuHWyaza5V5kjV6WTFbQ7bFMXZwGUAw91uSrPJWpump?chain=solana" allowfullscreen></iframe>
-
   <footer>
-    <p>© 2025 $VYRAL – All rights reserved.</p>
+    <p>© 2025 $VYRAL – Verified Community Holding Strong.</p>
   </footer>
+
+  <script>
+    async function loadTopHolders() {
+      const contract = "GxuHWyaza5V5kjV6WTFbQ7bFMXZwGUAw91uSrPJWpump";
+      const url = `https://public-api.birdeye.so/public/token/${contract}/holders?page=1&limit=100`;
+      const apiKey = "curl --request GET \
+     --url 'https://public-api.birdeye.so/trader/txs/seek_by_time?offset=0&limit=100' \
+     --header 'accept: application/json' \
+     --header 'x-chain: solana'"; 
+      const res = await fetch(url, {
+        headers: { "X-API-KEY": apiKey }
+      });
+      const data = await res.json();
+
+      const rows = data.data?.items
+        ?.filter(item => Number(item.amount) > 0)
+        .slice(0, 100)
+        .map((item, index) => `<tr><td>${index + 1}</td><td>${item.holder}</td></tr>`)
+        .join("");
+
+      document.querySelector("#holderTable tbody").innerHTML = rows || "<tr><td colspan='2'>No data available</td></tr>";
+    }
+
+    loadTopHolders();
+  </script>
 </body>
 </html>
