@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>$VYRAL – Verified Holders</title>
+  <title>$VYRAL – Whitelist Entry</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
   <style>
     body {
@@ -29,25 +29,35 @@
       font-weight: bold;
     }
 
-    .info-box {
-      background-color: #1a1a1a;
-      border: 1px solid #ff2ec7;
-      padding: 20px;
-      margin: 30px auto;
-      max-width: 700px;
+    input, button {
+      padding: 12px;
+      font-size: 1rem;
       border-radius: 10px;
+      border: none;
+      margin: 10px 5px;
+    }
+
+    input {
+      width: 280px;
+    }
+
+    .entry-list {
+      margin-top: 30px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     table {
-      margin: 30px auto;
+      width: 100%;
       border-collapse: collapse;
-      width: 90%;
-      max-width: 800px;
+      margin-top: 10px;
     }
 
     th, td {
       border: 1px solid #ff2ec7;
-      padding: 14px;
+      padding: 12px;
+      font-size: 0.9rem;
     }
 
     th {
@@ -57,15 +67,9 @@
 
     td {
       background-color: #191919;
-      font-size: 0.9rem;
-      word-break: break-word;
     }
 
-    footer {
-      margin-top: 60px;
-      padding: 20px;
-      color: #888;
-    }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -75,65 +79,96 @@
     <a href="roadmap.html" class="btn">Roadmap</a>
     <a href="whitepaper.html" class="btn">Whitepaper</a>
     <a href="chart.html" class="btn">Chart</a>
-    <a href="contracts.html" class="btn">Contracts</a>
+    <a href="contracts.html" class="btn">Whitelist</a>
   </nav>
 
-  <h1>🔐 Verified $VYRAL Holders</h1>
+  <h1>📝 $VYRAL Whitelist</h1>
+  <p>Enter your Solana wallet address below to join the whitelist.</p>
 
-  <div class="info-box">
-    <p>This list shows wallets that:</p>
-    <ul style="text-align: left; display: inline-block;">
-      <li>✅ Were among the <strong>first 100 buyers</strong> of $VYRAL</li>
-      <li>✅ Are still actively <strong>holding tokens</strong></li>
-    </ul>
-    <p><em>Auto-updated live via Birdeye API</em></p>
+  <input type="text" id="walletInput" placeholder="Enter your wallet address..." />
+  <button onclick="addEntry()">Submit</button>
+
+  <!-- Hidden for public, shown only if correct pass entered -->
+  <div id="downloadSection" class="hidden">
+    <button onclick="downloadCSV()">⬇️ Download Full Whitelist (CSV)</button>
   </div>
 
-  <table id="holderTable">
-    <thead>
-      <tr><th>#</th><th>Wallet Address</th><th>Balance</th></tr>
-    </thead>
-    <tbody>
-      <tr><td colspan="3">Loading wallet data...</td></tr>
-    </tbody>
-  </table>
+  <div class="entry-list">
+    <table id="entryTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Wallet</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <footer>
-    <p>© 2025 $VYRAL – Real Holders. Real Community.</p>
+    <p>© 2025 $VYRAL – Built by Degens for Degens.</p>
   </footer>
 
   <script>
-    async function loadHolders() {
-      const tableBody = document.querySelector("#holderTable tbody");
-      const apiKey = "YOUR_BIRDEYE_API_KEY"; // Replace with your actual key
-      const url = "https://public-api.birdeye.so/defi/v3/token/holder?offset=0&limit=100&address=GxuHWyaza5V5kjV6WTFbQ7bFMXZwGUAw91uSrPJWpump&chain=solana";
+    const table = document.querySelector("#entryTable tbody");
+    const localKey = "vyral_whitelist";
 
-      try {
-        const res = await fetch(url, {
-          headers: { "X-API-KEY": apiKey }
-        });
-
-        const data = await res.json();
-        const holders = data?.data?.items || [];
-
-        const valid = holders.filter(h => parseFloat(h.amount) > 0).slice(0, 100);
-
-        const rows = valid.map((item, i) => `
-          <tr>
-            <td>${i + 1}</td>
-            <td>${item.holder}</td>
-            <td>${parseFloat(item.amount).toLocaleString()}</td>
-          </tr>
-        `).join("");
-
-        tableBody.innerHTML = rows || "<tr><td colspan='3'>No active holders found.</td></tr>";
-      } catch (err) {
-        console.error(err);
-        tableBody.innerHTML = "<tr><td colspan='3'>Error loading data.</td></tr>";
-      }
+    function abbreviate(wallet) {
+      return wallet.length > 10 ? wallet.slice(0, 4) + "..." + wallet.slice(-4) : wallet;
     }
 
-    loadHolders();
+    function addEntry() {
+      const wallet = document.getElementById("walletInput").value.trim();
+      if (!wallet) return alert("Please enter a wallet address");
+
+      const timestamp = new Date().toLocaleString();
+      const entry = { wallet, timestamp };
+      const list = JSON.parse(localStorage.getItem(localKey) || "[]");
+
+      list.push(entry);
+      localStorage.setItem(localKey, JSON.stringify(list));
+      document.getElementById("walletInput").value = "";
+      renderTable();
+    }
+
+    function renderTable() {
+      const list = JSON.parse(localStorage.getItem(localKey) || "[]");
+      table.innerHTML = list.map((entry, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${abbreviate(entry.wallet)}</td>
+          <td>${entry.timestamp}</td>
+        </tr>
+      `).join("");
+    }
+
+    function downloadCSV() {
+      const list = JSON.parse(localStorage.getItem(localKey) || "[]");
+      if (!list.length) return alert("No data to download");
+
+      const header = "Wallet Address,Timestamp\n";
+      const rows = list.map(e => `${e.wallet},${e.timestamp}`).join("\n");
+      const blob = new Blob([header + rows], { type: "text/csv" });
+
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "vyral_whitelist.csv";
+      link.click();
+    }
+
+    // Allow download if you're the owner
+    const OWNER_PASS = "vyral-access"; // 🔐 change this to your passphrase
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const input = prompt("Admin access: Enter passphrase");
+        if (input === OWNER_PASS) {
+          document.getElementById("downloadSection").classList.remove("hidden");
+        }
+      }
+    });
+
+    renderTable();
   </script>
 </body>
 </html>
