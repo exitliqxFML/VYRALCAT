@@ -118,10 +118,7 @@
   <script>
     const table = document.querySelector("#entryTable tbody");
     const localKey = "vyral_whitelist";
-    const tokenAddress = "GxuHWyaza5V5kjV6WTFbQ7bFMXZwGUAw91uSrPJWpump";
     const status = document.getElementById("statusMessage");
-
-    const BIRDEYE_API_KEY = "2e512a747fde44b197517c835c1ee21b";
 
     function abbreviate(wallet) {
       return wallet.length > 10 ? wallet.slice(0, 4) + "..." + wallet.slice(-4) : wallet;
@@ -138,32 +135,9 @@
       `).join("");
     }
 
-    async function checkHolding(wallet) {
-      const url = `https://public-api.birdeye.so/defi/token/holder-by-address?address=${wallet}&token_address=${tokenAddress}&chain=solana`;
-
-      try {
-        const res = await fetch(url, {
-          headers: { "X-API-KEY": BIRDEYE_API_KEY }
-        });
-        const data = await res.json();
-        return parseFloat(data?.data?.amount || 0) > 0;
-      } catch (e) {
-        console.error(e);
-        return false;
-      }
-    }
-
-    async function addEntry() {
+    function addEntry() {
       const wallet = document.getElementById("walletInput").value.trim();
       if (!wallet) return alert("Please enter a wallet address");
-
-      status.textContent = "Checking if you're holding $VYRAL...";
-      const holding = await checkHolding(wallet);
-
-      if (!holding) {
-        status.textContent = "You are wasting time by not hodling lol";
-        return;
-      }
 
       const timestamp = new Date().toLocaleString();
       const entry = { wallet, timestamp };
