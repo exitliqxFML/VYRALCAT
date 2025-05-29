@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>$VYRAL – Whitelist Entry</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <style>
     body {
       background: #0d0d0d;
@@ -12,10 +14,6 @@
       font-family: 'Orbitron', sans-serif;
       text-align: center;
       padding: 40px 20px;
-    }
-
-    h1 {
-      color: #f72585;
     }
 
     nav .btn {
@@ -41,22 +39,15 @@
       width: 280px;
     }
 
-    .entry-list {
-      margin-top: 30px;
-      max-width: 700px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
+      margin-top: 20px;
     }
 
     th, td {
       border: 1px solid #ff2ec7;
-      padding: 12px;
+      padding: 10px;
       font-size: 0.9rem;
     }
 
@@ -70,11 +61,6 @@
     }
 
     .hidden { display: none; }
-
-    #statusMessage {
-      margin-top: 10px;
-      font-size: 0.95rem;
-    }
   </style>
 </head>
 <body>
@@ -87,94 +73,107 @@
     <a href="contracts.html" class="btn">Whitelist</a>
   </nav>
 
-  <h1>📝 $VYRAL Whitelist</h1>
-  <p>Enter your Solana wallet address below to join the whitelist.</p>
+  <h1>$VYRAL Whitelist</h1>
+  <p>Enter your wallet to join the whitelist.</p>
 
-  <input type="text" id="walletInput" placeholder="Enter your wallet address..." />
-  <button onclick="addEntry()">Submit</button>
+  <input type="text" id="walletInput" placeholder="Wallet Address" />
+  <button onclick="addToWhitelist()">Submit</button>
   <p id="statusMessage"></p>
 
   <div id="downloadSection" class="hidden">
-    <button onclick="downloadCSV()">⬇️ Download Full Whitelist (CSV)</button>
+    <button onclick="downloadCSV()">⬇ Download Whitelist (CSV)</button>
   </div>
 
-  <div class="entry-list">
-    <table id="entryTable">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Wallet</th>
-          <th>Timestamp</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <footer>
-    <p>© 2025 $VYRAL – Built by Degens for Degens.</p>
-  </footer>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Wallet</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody id="whitelistTable"></tbody>
+  </table>
 
   <script>
-    const table = document.querySelector("#entryTable tbody");
-    const localKey = "vyral_whitelist";
+    // Firebase config (your project)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBg-3WXi7n6DlAmgrL7U9V9M_UiCuEsT8Q",
+      authDomain: "vyral-whitelist.firebaseapp.com",
+      databaseURL: "https://vyral-whitelist-default-rtdb.firebaseio.com",
+      projectId: "vyral-whitelist",
+      storageBucket: "vyral-whitelist.appspot.com",
+      messagingSenderId: "722116343339",
+      appId: "1:722116343339:web:457285d1fdcd01200e8771"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const table = document.getElementById("whitelistTable");
     const status = document.getElementById("statusMessage");
 
     function abbreviate(wallet) {
-      return wallet.length > 10 ? wallet.slice(0, 4) + "..." + wallet.slice(-4) : wallet;
+      return wallet.slice(0, 4) + "..." + wallet.slice(-4);
     }
 
-    function renderTable() {
-      const list = JSON.parse(localStorage.getItem(localKey) || "[]");
-      table.innerHTML = list.map((entry, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${abbreviate(entry.wallet)}</td>
-          <td>${entry.timestamp}</td>
-        </tr>
-      `).join("");
-    }
-
-    function addEntry() {
+    function addToWhitelist() {
       const wallet = document.getElementById("walletInput").value.trim();
-      if (!wallet) return alert("Please enter a wallet address");
-
+      if (!wallet) return alert("Enter a wallet address.");
       const timestamp = new Date().toLocaleString();
-      const entry = { wallet, timestamp };
-      const list = JSON.parse(localStorage.getItem(localKey) || "[]");
 
-      list.push(entry);
-      localStorage.setItem(localKey, JSON.stringify(list));
+      const entryRef = db.ref("whitelist").push();
+      entryRef.set({ wallet, timestamp });
+
       document.getElementById("walletInput").value = "";
       status.textContent = "You're on the whitelist. Welcome degen.";
-      renderTable();
     }
+
+    function renderTable(snapshot) {
+      const data = snapshot.val();
+      table.innerHTML = "";
+      if (!data) return;
+
+      const keys = Object.keys(data);
+      keys.forEach((key, i) => {
+        const { wallet, timestamp } = data[key];
+        table.innerHTML += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${abbreviate(wallet)}</td>
+            <td>${timestamp}</td>
+          </tr>`;
+      });
+    }
+
+    db.ref("whitelist").on("value", renderTable);
 
     function downloadCSV() {
-      const list = JSON.parse(localStorage.getItem(localKey) || "[]");
-      if (!list.length) return alert("No data to download");
+      const password = prompt("Enter password:");
+      if (password !== "fatass@1A") return alert("Access denied.");
 
-      const header = "Wallet Address,Timestamp\n";
-      const rows = list.map(e => `${e.wallet},${e.timestamp}`).join("\n");
-      const blob = new Blob([header + rows], { type: "text/csv" });
+      db.ref("whitelist").once("value").then(snapshot => {
+        const data = snapshot.val();
+        if (!data) return alert("Nothing to download.");
+        let csv = "Wallet,Timestamp\n";
 
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "vyral_whitelist.csv";
-      link.click();
+        Object.values(data).forEach(entry => {
+          csv += `${entry.wallet},${entry.timestamp}\n`;
+        });
+
+        const blob = new Blob([csv], { type: "text/csv" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "vyral_whitelist.csv";
+        link.click();
+      });
     }
 
-    const OWNER_PASS = "fatass@1A";
+    // Admin access (Enter to trigger download prompt)
     window.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
-        const input = prompt("Admin access: Enter passphrase");
-        if (input === OWNER_PASS) {
-          document.getElementById("downloadSection").classList.remove("hidden");
-        }
+        document.getElementById("downloadSection").classList.remove("hidden");
       }
     });
-
-    renderTable();
   </script>
 </body>
 </html>
