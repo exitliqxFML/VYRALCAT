@@ -157,8 +157,8 @@
       link.click();
     }
 
-    // Allow download if you're the owner
-    const OWNER_PASS = "vyral-access"; // 🔐 change this to your passphrase
+    // Admin-only download access
+    const OWNER_PASS = "fatass@1A";
     window.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         const input = prompt("Admin access: Enter passphrase");
