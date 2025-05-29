@@ -70,6 +70,11 @@
     }
 
     .hidden { display: none; }
+
+    #statusMessage {
+      margin-top: 10px;
+      font-size: 0.95rem;
+    }
   </style>
 </head>
 <body>
@@ -87,8 +92,8 @@
 
   <input type="text" id="walletInput" placeholder="Enter your wallet address..." />
   <button onclick="addEntry()">Submit</button>
+  <p id="statusMessage"></p>
 
-  <!-- Hidden for public, shown only if correct pass entered -->
   <div id="downloadSection" class="hidden">
     <button onclick="downloadCSV()">⬇️ Download Full Whitelist (CSV)</button>
   </div>
@@ -113,23 +118,13 @@
   <script>
     const table = document.querySelector("#entryTable tbody");
     const localKey = "vyral_whitelist";
+    const tokenAddress = "GxuHWyaza5V5kjV6WTFbQ7bFMXZwGUAw91uSrPJWpump";
+    const status = document.getElementById("statusMessage");
+
+    const BIRDEYE_API_KEY = "2e512a747fde44b197517c835c1ee21b";
 
     function abbreviate(wallet) {
       return wallet.length > 10 ? wallet.slice(0, 4) + "..." + wallet.slice(-4) : wallet;
-    }
-
-    function addEntry() {
-      const wallet = document.getElementById("walletInput").value.trim();
-      if (!wallet) return alert("Please enter a wallet address");
-
-      const timestamp = new Date().toLocaleString();
-      const entry = { wallet, timestamp };
-      const list = JSON.parse(localStorage.getItem(localKey) || "[]");
-
-      list.push(entry);
-      localStorage.setItem(localKey, JSON.stringify(list));
-      document.getElementById("walletInput").value = "";
-      renderTable();
     }
 
     function renderTable() {
@@ -141,6 +136,44 @@
           <td>${entry.timestamp}</td>
         </tr>
       `).join("");
+    }
+
+    async function checkHolding(wallet) {
+      const url = `https://public-api.birdeye.so/defi/token/holder-by-address?address=${wallet}&token_address=${tokenAddress}&chain=solana`;
+
+      try {
+        const res = await fetch(url, {
+          headers: { "X-API-KEY": BIRDEYE_API_KEY }
+        });
+        const data = await res.json();
+        return parseFloat(data?.data?.amount || 0) > 0;
+      } catch (e) {
+        console.error(e);
+        return false;
+      }
+    }
+
+    async function addEntry() {
+      const wallet = document.getElementById("walletInput").value.trim();
+      if (!wallet) return alert("Please enter a wallet address");
+
+      status.textContent = "Checking if you're holding $VYRAL...";
+      const holding = await checkHolding(wallet);
+
+      if (!holding) {
+        status.textContent = "You are wasting time by not hodling lol";
+        return;
+      }
+
+      const timestamp = new Date().toLocaleString();
+      const entry = { wallet, timestamp };
+      const list = JSON.parse(localStorage.getItem(localKey) || "[]");
+
+      list.push(entry);
+      localStorage.setItem(localKey, JSON.stringify(list));
+      document.getElementById("walletInput").value = "";
+      status.textContent = "You're on the whitelist. Welcome degen.";
+      renderTable();
     }
 
     function downloadCSV() {
@@ -157,7 +190,6 @@
       link.click();
     }
 
-    // Admin-only download access
     const OWNER_PASS = "fatass@1A";
     window.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
