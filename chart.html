@@ -3,44 +3,78 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>$VYRAL – Live Chart</title>
+  <title>$VYRAL – Chart</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
   <style>
     body {
-      background: #0d0d0d;
-      color: #fff;
       font-family: 'Orbitron', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: url('assets/img/background.png') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
       text-align: center;
-      padding: 40px;
     }
-    h2 {
-      color: #f72585;
-      font-size: 2.5rem;
-      margin-bottom: 40px;
+
+    .overlay {
+      background-color: rgba(0, 0, 0, 0.85);
+      padding: 40px 20px;
+      min-height: 100vh;
     }
-    iframe {
-      width: 100%;
-      max-width: 1000px;
-      height: 600px;
-      border: none;
-      border-radius: 10px;
+
+    nav {
+      margin-bottom: 30px;
     }
-    a.btn {
-      background: #ff2ec7;
-      padding: 10px 20px;
-      margin-top: 20px;
-      display: inline-block;
+
+    nav .btn {
+      background: #222;
+      border: 2px solid #ff2ec7;
+      color: #ff2ec7;
+      margin: 4px;
       text-decoration: none;
-      color: white;
+      padding: 10px 18px;
       border-radius: 10px;
       font-weight: bold;
+    }
+
+    h1 {
+      font-size: 3rem;
+      color: #ff2ec7;
+      margin-bottom: 20px;
+    }
+
+    iframe {
+      width: 100%;
+      max-width: 1600px;
+      height: 900px;
+      border: none;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    footer {
+      margin-top: 60px;
+      padding: 20px;
+      color: #ccc;
     }
   </style>
 </head>
 <body>
-  <h2>📈 Live $VYRAL Chart</h2>
-  <iframe src="https://birdeye.so/token/GxuHWyaza5V5kjV6WTFbQ7bFMXZwGUAw91uSrPJWpump?chain=solana"></iframe>
-  <br />
-  <a href="index.html" class="btn">⬅ Back to Home</a>
+  <div class="overlay">
+    <nav>
+      <a class="btn" href="index.html">Home</a>
+      <a class="btn" href="tokenomics.html">Tokenomics</a>
+      <a class="btn" href="roadmap.html">Roadmap</a>
+      <a class="btn" href="whitepaper.html">Whitepaper</a>
+      <a class="btn" href="chart.html">Chart</a>
+    </nav>
+
+    <h1>📊 $VYRAL Live Chart</h1>
+    <iframe src="https://birdeye.so/token/GxuHWyaza5V5kjV6WTFbQ7bFMXZwGUAw91uSrPJWpump?chain=solana" allowfullscreen></iframe>
+
+    <footer>
+      <p>© 2025 $VYRAL. All rights reserved.</p>
+    </footer>
+  </div>
 </body>
 </html>
